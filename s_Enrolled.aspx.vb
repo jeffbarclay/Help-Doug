@@ -9,7 +9,7 @@ Partial Class s_Enrolled
     
     Protected Sub GridView1_RowDeleting(ByVal sender As [Object], ByVal e As GridViewDeleteEventArgs)
         
-        'e.Cancel = True
+        'e.Cancel = False
         
         Dim ClassName As String = GridView1.Rows(e.RowIndex).Cells(1).Text
         Dim ClassDate As String = GridView1.Rows(e.RowIndex).Cells(2).Text
