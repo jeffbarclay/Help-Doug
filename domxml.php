@@ -7,6 +7,7 @@ if(isset($_GET['station']) && !empty($_GET['station'])){
 	$station = $_GET['station'];
 	//echo "<script type='text/javascript'>alert('aaa $icon bbb');</script>";
 	$query = "SELECT * FROM hydrants WHERE `ICON` = '".$icon."' AND `STATION` = '".$station."';";
+	//$query = "SELECT * FROM hydrants WHERE 1";
 } else {   
 	//echo "<script type='text/javascript'>alert('null queryString skip over to ALL STATIONS!');</script>";
 	$query = "SELECT * FROM hydrants WHERE 1";

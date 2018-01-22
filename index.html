@@ -228,29 +228,28 @@
 // OSM on Paper: http://wiki.openstreetmap.org/wiki/OSM_on_Paper      
         
         var getQueryString = function ( field, url ) {
-    		var href = url ? url : window.location.href;
-    		var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
-    		var string = reg.exec(href);
-    		return string ? string[1] : null;
+    	var href = url ? url : window.location.href;
+    	var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
+    	var string = reg.exec(href);
+    	return string ? string[1] : null;
 		};
-		
 		var station = getQueryString('station');
-		var icon = getQueryString('icon');	
-		//alert(icon + " " + station);
+		var type = getQueryString('icon');	
+		//alert("php/domxml.php?station="+station+"&icon="+type+"");
         
         var infoWindow = new google.maps.InfoWindow;
 		
-        // Change this depending on the name of your PHP or XML file
-    	//downloadUrl('https://storage.googleapis.com/mapsdevsite/json/mapmarkers2.xml', function(data) {
-        downloadUrl("php/domxml.php?station='"+station+"'&icon='"+icon+"'", function(data) {
-        									//downloadUrl("php/domxml.php", function(data) {
-        	var xml = data.responseXML;
+          // Change this depending on the name of your PHP or XML file
+          //downloadUrl('https://storage.googleapis.com/mapsdevsite/json/mapmarkers2.xml', function(data) {
+          downloadUrl("php/domxml.php?station="+station+"&icon="+type+"", function(data) {
+          //downloadUrl("php/domxml.php?station=13&icon=hydrant", function(data) {
+          //downloadUrl("php/domxml.php", function(data) {
+            var xml = data.responseXML;
             var markers = xml.documentElement.getElementsByTagName('marker');
-            
             Array.prototype.forEach.call(markers, function(markerElem) {
               var name = markerElem.getAttribute('st_num');
               var address = markerElem.getAttribute('st_name');
-              var icon_type = markerElem.getAttribute('icon');
+              var type = markerElem.getAttribute('icon');
               var point = new google.maps.LatLng(
                   parseFloat(markerElem.getAttribute('lat')),
                   parseFloat(markerElem.getAttribute('lng')));
@@ -264,21 +263,21 @@
               var text = document.createElement('text');
               text.textContent = address
               infowincontent.appendChild(text);
-              var icon = customLabel[icon_type] || {};
+              var icon = customLabel[type] || {};
               var marker = new google.maps.Marker({
                 position: point,
                 //label: icon.label,
                 icon: icon.icon,
                 map: map
               });     
-              
               marker.addListener('click', function() {
                 infoWindow.setContent(infowincontent);
                 infoWindow.open(map, marker);
               });
             });
-        });
+          });
         }
+
 
       function downloadUrl(url, callback) {
         var request = window.ActiveXObject ?
@@ -317,7 +316,7 @@ CREATE TABLE `hydrants` (
 `CITY` VARCHAR( 60) ,
 `ZIP` VARCHAR( 6) ,
 `STATION` VARCHAR( 10 ) ,
-`icon` VARCHAR( 30 ) NOT NULL
+`type` VARCHAR( 30 ) NOT NULL
 ) ENGINE = MYISAM ;
 */
     </script>
