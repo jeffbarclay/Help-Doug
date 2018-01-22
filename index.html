@@ -1,0 +1,332 @@
+<!DOCTYPE html >
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <title>MCFRS Station 13 Maps</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      
+      #description {
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+      }
+
+      #infowindow-content .title {
+        font-weight: bold;
+      }
+
+      #infowindow-content {
+        display: none;
+      }
+
+      #map #infowindow-content {
+        display: inline;
+      }
+
+      .pac-card {
+        margin: 10px 10px 0 0;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        background-color: #fff;
+        font-family: Roboto;
+      }
+
+      #pac-container {
+        padding-bottom: 12px;
+        margin-right: 12px;
+      }
+
+      .pac-controls {
+        display: inline-block;
+        padding: 5px 11px;
+      }
+
+      .pac-controls label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+      }
+
+      #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 400px;
+      }
+
+      #pac-input:focus {
+        border-color: #4d90fe;
+      }
+
+      #title {
+        color: #fff;
+        background-color: #4d90fe;
+        font-size: 25px;
+        font-weight: 500;
+        padding: 6px 12px;
+      }
+      #target {
+        width: 345px;
+      }
+    </style>
+  </head>
+
+  <body>
+  	<input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <div id="map"></div>
+
+    <script>
+    // https://developers.google.com/maps/documentation/javascript/markers
+    // hydrant download data: http://data.mcgov-gis.opendata.arcgis.com/datasets/bcc4b498d50545bf8d51887c31953e5f_0?uiTab=table&geometry=-77.26%2C39.177%2C-77.233%2C39.182
+	    
+	  var iconBase = 'icons/';
+      var customLabel = {
+        hydrant: {
+          label: 'H',
+          icon: iconBase + 'red_hydrant.png'
+        },
+        water_supply: {
+          label: 'W',
+          icon: iconBase + 'water_supply.png'
+        },
+        fire_station: {
+          label: 'FS',
+          icon: iconBase + 'firehouse.png'
+        },
+        information: {
+          label: 'I',
+          icon: iconBase + 'yellow_info.png'
+        }
+      };
+	
+        function initMap() {
+/*        
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: new google.maps.LatLng(39.2889982, -77.20475110),
+          zoom: 18
+        });
+*/
+	
+// Start code from OSM map (FULL SCRIPT TAG): http://wiki.openstreetmap.org/wiki/Google_Maps_Example
+		 var element = document.getElementById("map");
+
+            /*
+            Build list of map types.
+            You can also use var mapTypeIds = ["roadmap", "satellite", "hybrid", "terrain", "OSM"]
+            but static lists sucks when google updates the default list of map types.
+            */
+            var mapTypeIds = [];
+            for(var type in google.maps.MapTypeId) {
+                mapTypeIds.push(google.maps.MapTypeId[type]);
+            }
+            mapTypeIds.push("OSM");
+
+            var map = new google.maps.Map(element, {
+                center: new google.maps.LatLng(39.2889982, -77.20475110),
+                zoom: 13,
+                mapTypeId: "OSM",
+                mapTypeControlOptions: {
+                    mapTypeIds: mapTypeIds
+                }
+            });
+
+            map.mapTypes.set("OSM", new google.maps.ImageMapType({
+                getTileUrl: function(coord, zoom) {
+                    // See above example if you need smooth wrapping at 180th meridian
+                    return "http://tile.openstreetmap.org/" + zoom + "/" + coord.x + "/" + coord.y + ".png";
+                },
+                tileSize: new google.maps.Size(256, 256),
+                name: "OpenStreetMap",
+                maxZoom: 18
+            }));
+// End of Change        
+
+/*
+// START SEARCH BAR
+	
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+        var xmarkers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // Clear out the old markers.
+          xmarkers.forEach(function(xmarker) {
+            xmarker.setMap(null);
+          });
+          xmarkers = [];
+
+          // For each place, get the icon, name and location.
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var xicon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            // Create a marker for each place.
+            xmarkers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+      }
+// END SEARCH BAR
+*/
+
+// Start overlay data from: https://developers.google.com/maps/documentation/javascript/mysql-to-maps  
+// OSM on Paper: http://wiki.openstreetmap.org/wiki/OSM_on_Paper      
+        
+        var getQueryString = function ( field, url ) {
+    		var href = url ? url : window.location.href;
+    		var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
+    		var string = reg.exec(href);
+    		return string ? string[1] : null;
+		};
+		
+		var station = getQueryString('station');
+		var icon = getQueryString('icon');	
+		//alert(icon + " " + station);
+        
+        var infoWindow = new google.maps.InfoWindow;
+		
+        // Change this depending on the name of your PHP or XML file
+    	//downloadUrl('https://storage.googleapis.com/mapsdevsite/json/mapmarkers2.xml', function(data) {
+        downloadUrl("php/domxml.php?station='"+station+"'&icon='"+icon+"'", function(data) {
+        									//downloadUrl("php/domxml.php", function(data) {
+        	var xml = data.responseXML;
+            var markers = xml.documentElement.getElementsByTagName('marker');
+            
+            Array.prototype.forEach.call(markers, function(markerElem) {
+              var name = markerElem.getAttribute('st_num');
+              var address = markerElem.getAttribute('st_name');
+              var icon_type = markerElem.getAttribute('icon');
+              var point = new google.maps.LatLng(
+                  parseFloat(markerElem.getAttribute('lat')),
+                  parseFloat(markerElem.getAttribute('lng')));
+
+              var infowincontent = document.createElement('div');
+              var strong = document.createElement('strong');
+              strong.textContent = name
+              infowincontent.appendChild(strong);
+              infowincontent.appendChild(document.createElement('br'));
+  
+              var text = document.createElement('text');
+              text.textContent = address
+              infowincontent.appendChild(text);
+              var icon = customLabel[icon_type] || {};
+              var marker = new google.maps.Marker({
+                position: point,
+                //label: icon.label,
+                icon: icon.icon,
+                map: map
+              });     
+              
+              marker.addListener('click', function() {
+                infoWindow.setContent(infowincontent);
+                infoWindow.open(map, marker);
+              });
+            });
+        });
+        }
+
+      function downloadUrl(url, callback) {
+        var request = window.ActiveXObject ?
+            new ActiveXObject('Microsoft.XMLHTTP') :
+            new XMLHttpRequest;
+
+        request.onreadystatechange = function() {
+          if (request.readyState == 4) {
+            request.onreadystatechange = doNothing;
+            callback(request, request.status);
+          }
+        };
+
+        request.open('GET', url, true);
+        request.send(null);
+      }
+
+      function doNothing() {}
+// End Overlay
+
+
+
+/*
+CREATE TABLE `hydrants` (
+`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+`HYD_ID` INT NOT NULL ,
+`PRIVATE` VARCHAR( 2 ) ,
+`ST_NUM` VARCHAR( 10 ) ,
+`ST_NAME` VARCHAR( 60 ) ,
+`MAIN` VARCHAR( 10 ) ,
+`ST_TYPE` VARCHAR( 10 ) ,
+`ST_PREFIX` VARCHAR( 10 ) ,
+`ST_SUFFIX` VARCHAR( 60 ) ,
+`lat` FLOAT( 10, 6 ) NOT NULL ,
+`lng` FLOAT( 10, 6 ) NOT NULL ,
+`CITY` VARCHAR( 60) ,
+`ZIP` VARCHAR( 6) ,
+`STATION` VARCHAR( 10 ) ,
+`icon` VARCHAR( 30 ) NOT NULL
+) ENGINE = MYISAM ;
+*/
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAY7__wtC-n_bKM1m_UYGlBR3Z64mzciW4&callback=initMap">
+    </script>
+<!--    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAY7__wtC-n_bKM1m_UYGlBR3Z64mzciW4&libraries=places&callback=initAutocomplete&callback=initMap"
+         async defer></script>
+ -->   
+    
+  </body>
+</html>
